@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="300" height="220" viewBox="0 0 300 220" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <!-- Speaker body and cone -->
+    <polygon points="81,64 114,64 159,40 159,136 114,112 81,112" fill="#ffffff"/>
+    <!-- Sound waves -->
+    <path d="M 171,70 A 18,18 0 0,1 171,106" fill="none" stroke="#ffffff" stroke-width="14" stroke-linecap="round"/>
+    <path d="M 171,55 A 33,33 0 0,1 171,121" fill="none" stroke="#ffffff" stroke-width="14" stroke-linecap="round"/>
+    <path d="M 171,40 A 48,48 0 0,1 171,136" fill="none" stroke="#ffffff" stroke-width="14" stroke-linecap="round"/>
+    <!-- App name -->
+    <text x="150" y="182" text-anchor="middle" fill="#ffffff" font-size="24" font-family="sans-serif" font-weight="bold">Beep Beep Beep</text>
+</svg>
