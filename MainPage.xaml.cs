@@ -8,6 +8,8 @@ public partial class MainPage : ContentPage
     private int _primarySeconds = 10;
     private int _secondarySeconds = 5;
     private int _repetitions = 5;
+    private bool _reminderEnabled = false;
+    private int _reminderIntervalSeconds = 10;
     private TaskCompletionSource? _pauseTcs;
 
     public MainPage(IBeepPlayer beepPlayer)
@@ -19,6 +21,9 @@ public partial class MainPage : ContentPage
         PrimaryTimeEntry.Text = _primarySeconds.ToString();
         SecondaryTimeEntry.Text = _secondarySeconds.ToString();
         RepsLabel.Text = _repetitions.ToString();
+        ReminderSwitch.IsToggled = _reminderEnabled;
+        ReminderIntervalEntry.Text = _reminderIntervalSeconds.ToString();
+        ReminderIntervalSection.IsVisible = _reminderEnabled;
         UpdateSettingsSummary();
     }
 
@@ -27,6 +32,8 @@ public partial class MainPage : ContentPage
         _primarySeconds = Preferences.Get("primarySeconds", _primarySeconds);
         _secondarySeconds = Preferences.Get("secondarySeconds", _secondarySeconds);
         _repetitions = Preferences.Get("repetitions", _repetitions);
+        _reminderEnabled = Preferences.Get("reminderEnabled", _reminderEnabled);
+        _reminderIntervalSeconds = Preferences.Get("reminderIntervalSeconds", _reminderIntervalSeconds);
     }
 
     private void SavePreferences()
@@ -34,11 +41,14 @@ public partial class MainPage : ContentPage
         Preferences.Set("primarySeconds", _primarySeconds);
         Preferences.Set("secondarySeconds", _secondarySeconds);
         Preferences.Set("repetitions", _repetitions);
+        Preferences.Set("reminderEnabled", _reminderEnabled);
+        Preferences.Set("reminderIntervalSeconds", _reminderIntervalSeconds);
     }
 
     private void UpdateSettingsSummary()
     {
-        SettingsSummaryLabel.Text = $"{_primarySeconds}s  ·  {_secondarySeconds}s  ·  {_repetitions} reps";
+        var reminder = _reminderEnabled ? $"  ·  reminder {_reminderIntervalSeconds}s" : "";
+        SettingsSummaryLabel.Text = $"{_primarySeconds}s  ·  {_secondarySeconds}s  ·  {_repetitions} reps{reminder}";
     }
 
     // ── Settings drawer ───────────────────────────────────────────────────────
@@ -127,6 +137,32 @@ public partial class MainPage : ContentPage
         RepsLabel.Text = _repetitions.ToString();
     }
 
+    // ── Reminder beep ─────────────────────────────────────────────────────────
+
+    private void OnReminderToggled(object? sender, ToggledEventArgs e)
+    {
+        _reminderEnabled = e.Value;
+        ReminderIntervalSection.IsVisible = _reminderEnabled;
+    }
+
+    private void OnReminderIntervalDecrement(object? sender, EventArgs e)
+    {
+        if (_reminderIntervalSeconds > 1) _reminderIntervalSeconds--;
+        ReminderIntervalEntry.Text = _reminderIntervalSeconds.ToString();
+    }
+
+    private void OnReminderIntervalIncrement(object? sender, EventArgs e)
+    {
+        _reminderIntervalSeconds++;
+        ReminderIntervalEntry.Text = _reminderIntervalSeconds.ToString();
+    }
+
+    private void OnReminderIntervalChanged(object? sender, TextChangedEventArgs e)
+    {
+        if (int.TryParse(e.NewTextValue, out int v) && v >= 1)
+            _reminderIntervalSeconds = v;
+    }
+
     // ── Session control ───────────────────────────────────────────────────────
 
     private void OnStartClicked(object? sender, EventArgs e)
@@ -175,16 +211,11 @@ public partial class MainPage : ContentPage
             {
                 SetRepLabel(rep, _repetitions);
 
-                await RunCountdownAsync("PRIMARY", "#FF4757", _primarySeconds, token).ConfigureAwait(false);
-                token.ThrowIfCancellationRequested();
-                await _beepPlayer.PlayThreeBeepsAsync().ConfigureAwait(false);
-
+                _ = _beepPlayer.PlayLongAlertBeepAsync();
+                await RunCountdownAsync("PRIMARY", "#FF4757", _primarySeconds, isPrimary: true, token).ConfigureAwait(false);
                 token.ThrowIfCancellationRequested();
 
-                await RunCountdownAsync("SECONDARY", "#2ED573", _secondarySeconds, token).ConfigureAwait(false);
-                token.ThrowIfCancellationRequested();
-                await _beepPlayer.PlayThreeBeepsAsync().ConfigureAwait(false);
-
+                await RunCountdownAsync("SECONDARY", "#2ED573", _secondarySeconds, isPrimary: false, token).ConfigureAwait(false);
                 token.ThrowIfCancellationRequested();
             }
         }
@@ -203,7 +234,7 @@ public partial class MainPage : ContentPage
         }
     }
 
-    private async Task RunCountdownAsync(string phase, string colorHex, int seconds, CancellationToken token)
+    private async Task RunCountdownAsync(string phase, string colorHex, int seconds, bool isPrimary, CancellationToken token)
     {
         MainThread.BeginInvokeOnMainThread(() =>
         {
@@ -220,6 +251,16 @@ public partial class MainPage : ContentPage
             int display = remaining;
             MainThread.BeginInvokeOnMainThread(() =>
                 CountdownLabel.Text = $"{display / 60:D2}:{display % 60:D2}");
+
+            if (isPrimary && _reminderEnabled && _reminderIntervalSeconds > 0 && remaining > 0)
+            {
+                int elapsed = seconds - remaining;
+                if (elapsed > 0 && elapsed % _reminderIntervalSeconds == 0)
+                    _ = _beepPlayer.PlaySingleBeepAsync();
+            }
+
+            if (remaining >= 1 && remaining <= 3)
+                _ = _beepPlayer.PlayAlertBeepAsync();
 
             if (remaining > 0)
                 await Task.Delay(1000, token).ConfigureAwait(false);

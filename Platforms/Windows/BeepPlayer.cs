@@ -11,19 +11,23 @@ public class BeepPlayer : IBeepPlayer
     private const uint SND_SYNC = 0x0000;
     private const uint SND_MEMORY = 0x0004;
 
+    public Task PlayLongAlertBeepAsync() =>
+        Task.Run(() => PlaySound(GenerateBeepWav(880, 600), IntPtr.Zero, SND_SYNC | SND_MEMORY));
+
+    public Task PlayAlertBeepAsync() =>
+        Task.Run(() => PlaySound(GenerateBeepWav(880, 200), IntPtr.Zero, SND_SYNC | SND_MEMORY));
+
+    public Task PlaySingleBeepAsync() =>
+        Task.Run(() => PlaySound(GenerateBeepWav(1400, 120), IntPtr.Zero, SND_SYNC | SND_MEMORY));
+
     public async Task PlayThreeBeepsAsync()
     {
         for (int i = 0; i < 3; i++)
         {
-            await Task.Run(PlaySingleBeep);
+            await Task.Run(() => PlaySound(GenerateBeepWav(880, 200), IntPtr.Zero, SND_SYNC | SND_MEMORY));
             if (i < 2)
                 await Task.Delay(300);
         }
-    }
-
-    private static void PlaySingleBeep()
-    {
-        PlaySound(GenerateBeepWav(880, 200), IntPtr.Zero, SND_SYNC | SND_MEMORY);
     }
 
     private static byte[] GenerateBeepWav(double frequency, int durationMs)

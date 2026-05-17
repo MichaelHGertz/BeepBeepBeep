@@ -205,6 +205,55 @@
                 </Grid>
             </VerticalStackLayout>
 
+            <!-- Reminder Beep -->
+            <VerticalStackLayout Spacing="10">
+                <Label Text="REMINDER BEEP"
+                       TextColor="#888888"
+                       FontSize="12"
+                       FontAttributes="Bold"
+                       HorizontalTextAlignment="Center"
+                       CharacterSpacing="1.5" />
+                <Grid ColumnDefinitions="*,Auto" Padding="10,0">
+                    <Label Grid.Column="0"
+                           Text="Beep during primary countdown"
+                           TextColor="White"
+                           FontSize="14"
+                           VerticalTextAlignment="Center" />
+                    <Switch Grid.Column="1"
+                            x:Name="ReminderSwitch"
+                            OnColor="#FF4757"
+                            Toggled="OnReminderToggled" />
+                </Grid>
+
+                <VerticalStackLayout x:Name="ReminderIntervalSection" IsVisible="False" Spacing="10">
+                    <Label Text="REMINDER INTERVAL (seconds)"
+                           TextColor="#888888"
+                           FontSize="12"
+                           FontAttributes="Bold"
+                           HorizontalTextAlignment="Center"
+                           CharacterSpacing="1.5" />
+                    <Grid ColumnDefinitions="60,*,60" ColumnSpacing="10" HeightRequest="64">
+                        <Button Grid.Column="0" Text="−" FontSize="28"
+                                BackgroundColor="#0F0F1A" TextColor="White"
+                                Clicked="OnReminderIntervalDecrement" CornerRadius="10"
+                                HeightRequest="64" />
+                        <Entry Grid.Column="1" x:Name="ReminderIntervalEntry"
+                               Text="10"
+                               FontSize="36" FontAttributes="Bold"
+                               TextColor="White"
+                               BackgroundColor="#0F0F1A"
+                               HorizontalTextAlignment="Center"
+                               Keyboard="Numeric"
+                               ReturnType="Done"
+                               TextChanged="OnReminderIntervalChanged" />
+                        <Button Grid.Column="2" Text="+" FontSize="28"
+                                BackgroundColor="#0F0F1A" TextColor="White"
+                                Clicked="OnReminderIntervalIncrement" CornerRadius="10"
+                                HeightRequest="64" />
+                    </Grid>
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+
             <Button Text="DONE"
                     FontSize="16" FontAttributes="Bold"
                     BackgroundColor="#FF4757"
